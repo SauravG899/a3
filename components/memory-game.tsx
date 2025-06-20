@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Settings, RotateCcw, HelpCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import confetti from "canvas-confetti"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 // Game types
 export type GameMode = "pictures" | "facts"
@@ -198,57 +199,55 @@ export function MemoryGame({ showInstructionsOnLoad = false }: MemoryGameProps) 
   }
 
   return (
-    <div className="w-full max-w-4xl">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setShowSettings(true)} className="flex items-center gap-1">
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Settings</span>
+    <div className={`min-h-screen w-full flex flex-col items-center justify-center ${gameMode === "pictures" ? "bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800" : "bg-gradient-to-br from-gray-400 via-gray-500 to-gray-600"}`}>
+      {/* Header and Subtitle */}
+      <h1 className="text-6xl font-extrabold text-white mb-2 tracking-tight text-center mt-16">MEMORY MATCH</h1>
+      <p className="text-xl text-white/90 mb-8 text-center">Find all matching pairs with the fewest moves!</p>
+      {/* Mode Selector */}
+      <div className="bg-white rounded-full px-6 py-3 inline-flex items-center gap-2 text-lg font-semibold mb-4">
+        <span className="text-gray-700">MODE:</span>
+        <button
+          onClick={() => setGameMode("pictures")}
+          className={`px-3 py-1 rounded-full transition-colors font-bold ${gameMode === "pictures" ? "text-orange-500 bg-orange-100" : "text-gray-600 hover:text-orange-500"}`}
+        >
+          PICTURES
+        </button>
+        <span className="text-gray-400">|</span>
+        <button
+          onClick={() => setGameMode("facts")}
+          className={`px-3 py-1 rounded-full transition-colors font-bold ${gameMode === "facts" ? "text-blue-600 bg-blue-100" : "text-gray-600 hover:text-blue-600"}`}
+        >
+          Facts
+        </button>
+      </div>
+      {/* Game Area Layout */}
+      <div className="flex w-full justify-center items-start gap-8">
+        {/* Left Sidebar */}
+        <div className="flex flex-col gap-4">
+          <Button variant="outline" className="bg-[#e9ecf1] text-[#222] border-none hover:bg-[#dbe3ea] px-8 py-3 text-base font-semibold flex items-center gap-2" onClick={() => setShowSettings(true)}>
+            <Settings className="w-5 h-5" /> settings
           </Button>
-          <Button variant="outline" size="sm" onClick={initializeGame} className="flex items-center gap-1">
-            <RotateCcw className="h-4 w-4" />
-            <span className="hidden sm:inline">Reset</span>
+          <Button variant="outline" className="bg-[#e9ecf1] text-[#222] border-none hover:bg-[#dbe3ea] px-8 py-3 text-base font-semibold flex items-center gap-2" onClick={initializeGame}>
+            <RotateCcw className="w-5 h-5" /> reset
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowInstructions(true)}
-            className="flex items-center gap-1"
-          >
-            <HelpCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Instructions</span>
+          <Button variant="outline" className="bg-[#e9ecf1] text-[#222] border-none hover:bg-[#dbe3ea] px-8 py-3 text-base font-semibold flex items-center gap-2" onClick={() => setShowInstructions(true)}>
+            <HelpCircle className="w-5 h-5" /> instructions
           </Button>
         </div>
-        <div className="flex gap-4 text-sm">
-          <div className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-md">
-            Mode: <span className="font-medium">{gameMode === "pictures" ? "Pictures" : "Facts"}</span>
-          </div>
-          <div className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-md">
-            Moves: <span className="font-medium">{moves}</span>
-          </div>
-          <div className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-md">
-            Matches:{" "}
-            <span className="font-medium">
-              {matchedPairs}/{cards.length / 2}
-            </span>
-          </div>
+        {/* Card Grid */}
+        <div className="grid grid-cols-4 gap-6 flex-1 max-w-2xl mb-16">
+          {cards.map((card) => (
+            <div key={card.id} className="aspect-square min-w-[100px] min-h-[100px] sm:min-w-[120px] sm:min-h-[120px] md:min-w-[140px] md:min-h-[140px] rounded-2xl text-5xl font-bold transition-all duration-300 transform hover:scale-105 active:scale-95">
+              <Card card={card} gameMode={gameMode} onClick={() => handleCardClick(card)} />
+            </div>
+          ))}
+        </div>
+        {/* Right Sidebar */}
+        <div className="flex flex-col gap-4">
+          <div className="bg-[#ffe44d] text-[#222] px-8 py-3 rounded-lg text-base font-bold shadow text-center">Moves: {moves}</div>
+          <div className="bg-[#ffe44d] text-[#222] px-8 py-3 rounded-lg text-base font-bold shadow text-center">Matches: {matchedPairs}</div>
         </div>
       </div>
-
-      <div
-        className={`grid gap-3 mx-auto ${
-          difficulty === "easy"
-            ? "grid-cols-3 sm:grid-cols-4"
-            : difficulty === "medium"
-              ? "grid-cols-3 sm:grid-cols-4"
-              : "grid-cols-4 sm:grid-cols-6"
-        }`}
-      >
-        {cards.map((card) => (
-          <Card key={card.id} card={card} gameMode={gameMode} onClick={() => handleCardClick(card)} />
-        ))}
-      </div>
-
       {showSettings && (
         <SettingsPanel
           currentMode={gameMode}
@@ -258,6 +257,17 @@ export function MemoryGame({ showInstructionsOnLoad = false }: MemoryGameProps) 
         />
       )}
       {showInstructions && <InstructionsPopup open={showInstructions} onClose={() => setShowInstructions(false)} />}
+      <Dialog open={gameComplete} onOpenChange={(open) => { if (!open) initializeGame(); }}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader>
+            <DialogTitle className="text-2xl mb-2">Game Complete!</DialogTitle>
+          </DialogHeader>
+          <div className="text-lg mb-4">You completed the game in <span className="font-bold">{moves}</span> moves.</div>
+          <DialogFooter>
+            <Button onClick={initializeGame} className="mx-auto">Play Again</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
